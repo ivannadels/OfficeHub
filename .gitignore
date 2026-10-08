@@ -1,0 +1,52 @@
+# --- Secrets & config (never commit) ---
+.env
+.env.*
+!.env.example
+.flaskenv
+instance/
+*.pem
+*.key
+*.crt
+secrets.*
+credentials*.json
+client_secret*.json
+service-account*.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Local data, databases & uploads ---
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+*.log
+logs/
+
+# --- Testing & tooling caches ---
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# --- Editors & OS junk ---
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
