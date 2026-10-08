@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 520" fill="none" stroke="#000" stroke-width="24">
+  <!-- connectors -->
+  <line x1="178" y1="118" x2="272" y2="80"/>
+  <line x1="120" y1="205" x2="120" y2="285"/>
+  <line x1="168" y1="182" x2="282" y2="250"/>
+  <line x1="168" y1="310" x2="282" y2="262"/>
+  <line x1="335" y1="135" x2="335" y2="195"/>
+  <line x1="335" y1="315" x2="335" y2="390"/>
+  <line x1="168" y1="385" x2="282" y2="445"/>
+  <!-- nodes -->
+  <circle cx="120" cy="145" r="58"/>
+  <circle cx="335" cy="75" r="58"/>
+  <circle cx="335" cy="255" r="58"/>
+  <circle cx="120" cy="345" r="58"/>
+  <circle cx="335" cy="450" r="58"/>
+</svg>

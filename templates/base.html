@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}OfficeHub{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <aside class="sidebar">
+    <nav class="nav-top">
+      <a href="#" class="nav-item {{ 'active' if active == 'profile' }}" title="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9.5" r="3.5" fill="currentColor"/><path d="M5.5 18.5c1.5-2.6 4-3.8 6.5-3.8s5 1.2 6.5 3.8" fill="currentColor"/></svg>
+      </a>
+      <a href="/" class="nav-item {{ 'active' if active == 'time' }}" title="Time Tracker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6H8"/></svg>
+      </a>
+      <a href="#" class="nav-item {{ 'active' if active == 'calendar' }}" title="Calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M7 3v4M17 3v4"/></svg>
+      </a>
+      <a href="#" class="nav-item {{ 'active' if active == 'tasks' }}" title="Tasks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7.5 12.5l3 3 6-7"/></svg>
+      </a>
+      <a href="#" class="nav-item {{ 'active' if active == 'messages' }}" title="Messages">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><circle cx="8" cy="10.5" r="1.3" fill="currentColor"/><circle cx="12" cy="10.5" r="1.3" fill="currentColor"/><circle cx="16" cy="10.5" r="1.3" fill="currentColor"/></svg>
+      </a>
+    </nav>
+    <a href="#" class="nav-item settings" title="Settings">
+      <img src="{{ url_for('static', filename='img/settings.svg') }}" alt="Settings">
+    </a>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <a href="/" class="brand">
+        <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" class="brand-logo">
+        <span>OfficeHub</span>
+      </a>
+      <button class="avatar" title="Account">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#000" stroke-width="1.4"/><circle cx="12" cy="9.5" r="4" fill="#000"/><path d="M4.5 19.5c1.8-3 4.6-4.4 7.5-4.4s5.7 1.4 7.5 4.4A11 11 0 0 1 12 23a11 11 0 0 1-7.5-3.5z" fill="#000"/></svg>
+      </button>
+    </header>
+
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

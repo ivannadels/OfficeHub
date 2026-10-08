@@ -1,0 +1,174 @@
+:root {
+  --sidebar: #5b734a;
+  --sidebar-hover: #4d6340;
+  --bg: #f4f4f4;
+  --surface: #ffffff;
+  --text: #111111;
+  --muted: #444444;
+  --pill: #e6e6e6;
+  --primary: #2a2136;
+  --line: #e2e2e2;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Poppins", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button, select { font: inherit; color: inherit; cursor: pointer; }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100px;
+  flex-shrink: 0;
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 50px 0 30px;
+}
+
+.nav-top { display: flex; flex-direction: column; gap: 52px; }
+
+.nav-item {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  color: #ededed;
+  transition: background .15s;
+}
+.nav-item:hover, .nav-item.active { background: var(--sidebar-hover); }
+.nav-item svg, .nav-item img { width: 46px; height: 46px; }
+
+/* ---------- Top bar ---------- */
+.main { flex: 1; min-width: 0; }
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 22px 0 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 38px;
+  font-weight: 400;
+}
+.brand-logo { width: 52px; height: 70px; }
+
+.avatar { background: none; border: none; width: 64px; height: 64px; }
+.avatar svg { width: 100%; height: 100%; }
+
+/* ---------- Content ---------- */
+.content { padding: 30px 8px 40px 50px; }
+
+.page-title {
+  font-size: 38px;
+  font-weight: 400;
+  padding-bottom: 14px;
+  margin-right: 46px;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.mode-toggle { display: flex; gap: 22px; margin: 46px 0 28px; }
+
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 34px;
+  font-size: 19px;
+  font-weight: 600;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-secondary { background: #dedede; color: var(--text); font-weight: 500; }
+.btn:hover { filter: brightness(1.1); }
+
+/* ---------- Table ---------- */
+.table-card { overflow-x: auto; }
+
+.tracker {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 19px;
+  white-space: nowrap;
+}
+
+.tracker th {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 0 18px 16px;
+  text-align: center;
+  border-bottom: 3px solid #d8d8d8;
+}
+.tracker th:nth-child(2) { text-align: left; padding-left: 36px; }
+
+.tracker tbody tr { background: var(--surface); border-bottom: 1.5px solid var(--line); }
+.tracker tbody tr:not(.add-row):hover { background: #fafaf7; }
+.tracker td { padding: 11px 18px; height: 62px; }
+.tracker td:first-child { padding-left: 34px; }
+
+.time { text-align: center; }
+.notes { padding-left: 32px; min-width: 300px; }
+.action { text-align: center; width: 1%; }
+
+.menu-cell { text-align: right !important; vertical-align: bottom; }
+.menu-btn {
+  background: none; border: none;
+  display: inline-flex; flex-direction: column; gap: 9px;
+  width: 40px; margin-right: 12px;
+}
+.menu-btn span { display: block; height: 2px; background: #ddd; }
+
+.pill {
+  display: inline-block;
+  background: var(--pill);
+  border: none;
+  border-radius: 999px;
+  padding: 3px 13px;
+  font-size: 19px;
+}
+
+.pill-select {
+  appearance: none;
+  padding-right: 26px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23333' stroke-width='1.3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 8px;
+  background-color: var(--pill);
+}
+
+.btn-memo {
+  background: #fff;
+  border: 1.5px solid #000;
+  border-radius: 999px;
+  padding: 5px 34px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.btn-memo:hover { background: #f1f1f1; }
+
+.icon-btn { background: none; border: none; padding: 0 16px; line-height: 0; }
+.icon-btn svg { width: 58px; height: 42px; }
+.icon-btn:hover svg { opacity: .7; }
+
+.add-row td { padding: 14px 32px; height: auto; }
+.add-pill { width: 116px; height: 30px; text-align: left; line-height: 0; }
+.add-pill img { width: 15px; height: 15px; }
