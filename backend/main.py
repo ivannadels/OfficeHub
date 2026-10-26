@@ -1,6 +1,22 @@
-from flask import Flask, render_template
+from pathlib import Path
 
-app = Flask(__name__)
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from database import Base, engine
+from backend.routes import time_tracker
+
+# templates/ and static/ live at the project root, one level above backend/
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Create any missing tables (only after every model above has been imported)
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="OfficeHub")
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
+app.include_router(time_tracker.router)
 
 # Fake data for the mockup
 TIME_ENTRIES = [
@@ -16,15 +32,11 @@ TIME_ENTRIES = [
 CASE_OPTIONS = ["Client work", "Internal", "Billing", "Pro bono"]
 
 
-@app.route("/")
-def time_tracker():
-    return render_template(
+@app.get("/", response_class=HTMLResponse)
+def time_tracker(request: Request):
+    return templates.TemplateResponse(
+        request,
         "time_tracker.html",
-        entries=TIME_ENTRIES,
-        case_options=CASE_OPTIONS,
-        active="time",
+        {"entries": TIME_ENTRIES, "case_options": CASE_OPTIONS, "active": "time"},
     )
 
-
-if __name__ == "__main__":
-    app.run(debug=True)

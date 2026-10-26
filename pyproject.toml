@@ -1,0 +1,23 @@
+[project]
+name = "officehub"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "ivannadels", email = "ivannadelsol1@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.143.0",
+]
+
+[project.scripts]
+officehub = "officehub:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.fastapi]
+entrypoint = "backend.main:app"
+

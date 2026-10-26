@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}OfficeHub{% endblock %}</title>
-  <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}">
+  <link rel="icon" href="/static/img/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
   <aside class="sidebar">
@@ -29,14 +29,14 @@
       </a>
     </nav>
     <a href="#" class="nav-item settings" title="Settings">
-      <img src="{{ url_for('static', filename='img/settings.svg') }}" alt="Settings">
+      <img src="/static/img/settings.svg" alt="Settings">
     </a>
   </aside>
 
   <div class="main">
     <header class="topbar">
       <a href="/" class="brand">
-        <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" class="brand-logo">
+        <img src="/static/img/logo.svg" alt="" class="brand-logo">
         <span>OfficeHub</span>
       </a>
       <button class="avatar" title="Account">
