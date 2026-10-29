@@ -64,9 +64,31 @@ def get_entry_or_404(entry_id: int, db: Session) -> TimeEntry:
     return entry
 
 
+def query_entries(
+    db: Session,
+    date_from: dt.date | None = None,
+    date_to: dt.date | None = None,
+    case: str | None = None,
+) -> list[TimeEntry]:
+    """Shared by the API and the HTML page so both always show the same entries, newest first."""
+    query = db.query(TimeEntry)
+    if date_from:
+        query = query.filter(TimeEntry.date >= date_from)
+    if date_to:
+        query = query.filter(TimeEntry.date <= date_to)
+    if case:
+        query = query.filter(TimeEntry.case == case)
+    return query.order_by(TimeEntry.date.desc(), TimeEntry.time.desc()).all()
+
+
 @router.get("", response_model=list[EntryRead])
-def list_entries(db: Session = Depends(get_db)):
-    return db.query(TimeEntry).order_by(TimeEntry.date, TimeEntry.time).all()
+def list_entries(
+    date_from: dt.date | None = None,
+    date_to: dt.date | None = None,
+    case: str | None = None,
+    db: Session = Depends(get_db),
+):
+    return query_entries(db, date_from, date_to, case)
 
 
 @router.post("", response_model=EntryRead, status_code=201)

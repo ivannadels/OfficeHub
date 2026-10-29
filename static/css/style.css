@@ -169,6 +169,8 @@ button, select { font: inherit; color: inherit; cursor: pointer; }
 .icon-btn svg { width: 58px; height: 42px; }
 .icon-btn:hover svg { opacity: .7; }
 
+.empty-row td { text-align: center; color: var(--muted); font-style: italic; }
+
 .add-row td { padding: 14px 32px; height: auto; }
 .add-pill { width: 116px; height: 30px; text-align: left; line-height: 0; }
 .add-pill img { width: 15px; height: 15px; }

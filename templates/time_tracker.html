@@ -24,18 +24,22 @@
       </tr>
     </thead>
     <tbody>
-      {% for e in entries %}
-      <tr>
-        <td><span class="pill">{{ e.date }}</span></td>
+      {% for e in time_entries %}
+      <tr data-entry-id="{{ e.entry_id }}">
+        {# Built from parts instead of strftime: Windows has no flag to drop leading zeros #}
+        <td><span class="pill">{{ e.date.month }}/{{ e.date.day }}/{{ e.date.year }}</span></td>
         <td>{{ e.purpose }}</td>
         <td>
           <select class="pill pill-select">
+            {% if e.case not in case_options %}
+            <option selected>{{ e.case }}</option>
+            {% endif %}
             {% for opt in case_options %}
             <option {{ 'selected' if opt == e.case }}>{{ opt }}</option>
             {% endfor %}
           </select>
         </td>
-        <td class="time">{{ e.time }}</td>
+        <td class="time">{{ e.time.strftime('%I:%M %p').lstrip('0') }}</td>
         <td class="notes">{{ e.notes }}</td>
         <td class="action"><button class="btn-memo">Memo &rarr;</button></td>
         <td class="action">
@@ -57,6 +61,10 @@
             </svg>
           </button>
         </td>
+      </tr>
+      {% else %}
+      <tr class="empty-row">
+        <td colspan="8">No entries yet. Add one with Manual Entry or Voice Memo.</td>
       </tr>
       {% endfor %}
       <tr class="add-row">

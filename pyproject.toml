@@ -9,6 +9,12 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.143.0",
+    "sqlalchemy>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
 ]
 
 [project.scripts]
@@ -20,4 +26,8 @@ build-backend = "uv_build"
 
 [tool.fastapi]
 entrypoint = "backend.main:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
 
