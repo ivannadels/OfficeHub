@@ -1,0 +1,221 @@
+/* ==========================================================================
+   OfficeHub — Time Tracker · "Modern Ledger" theme
+   Framework-agnostic. All colours, type and spacing live in the tokens below;
+   change them here and the whole UI follows.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+:root {
+  /* Colour */
+  --oh-bg:            #FDFBF6;  /* page background (cream) */
+  --oh-surface:       #FFFFFF;  /* buttons, inputs */
+  --oh-ink:           #26231C;  /* primary text, dark buttons, rules */
+  --oh-ink-2:         #4A453A;  /* secondary text */
+  --oh-ink-3:         #6B6457;  /* labels, column headers */
+  --oh-line:          #E7DFCE;  /* row dividers */
+  --oh-line-strong:   #DDD3BE;  /* button borders */
+  --oh-gold:          #C9B07A;  /* brand accent (active nav, logo) */
+  --oh-gold-text:     #7A6535;  /* gold used as text — passes contrast */
+  --oh-highlight:     #F1E9D6;  /* selected day */
+  --oh-sidebar:       #3A3427;
+  --oh-sidebar-ink:   #E6DCC4;
+  --oh-sage:          #A9BE98;  /* record button */
+  --oh-sage-ink:      #1F2A1A;
+  --oh-dock:          #26231C;
+  --oh-dock-ink:      #F3EEE2;
+  --oh-dock-muted:    #CFC6B1;
+
+  /* Matter colours (dot next to the matter name) */
+  --oh-matter-1: #5E7655;
+  --oh-matter-2: #A0843F;
+  --oh-matter-3: #4E5A8A;
+  --oh-matter-4: #B0624A;
+  --oh-matter-5: #3F7F86;
+  --oh-matter-6: #8F877A;
+
+  /* Type */
+  --oh-font-display: "Fraunces", Georgia, serif;
+  --oh-font-body:    "IBM Plex Sans", system-ui, sans-serif;
+  --oh-font-mono:    "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Shape & spacing */
+  --oh-radius-sm: 6px;
+  --oh-radius:    8px;
+  --oh-radius-lg: 14px;
+  --oh-pad-x:     48px;
+  --oh-gap:       28px;
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--oh-bg);
+  color: var(--oh-ink);
+  font-family: var(--oh-font-body);
+  font-size: 15px;
+  line-height: 1.45;
+}
+button { font: inherit; cursor: pointer; }
+.oh-icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor;
+           stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.oh-icon--sm { width: 15px; height: 15px; stroke-width: 2; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden;
+                   clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--oh-gold-text); outline-offset: 2px; }
+
+/* ---------- App shell ---------- */
+.oh-app { display: flex; min-height: 100vh; }
+
+.oh-sidebar {
+  flex: none; width: 84px;
+  background: var(--oh-sidebar);
+  padding: 20px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.oh-sidebar__logo { width: 52px; height: 52px; display: grid; place-items: center;
+                    margin-bottom: 12px; color: var(--oh-gold); }
+.oh-sidebar__logo svg { width: 30px; height: 30px; }
+.oh-sidebar__spacer { flex: 1; }
+.oh-nav-link {
+  width: 52px; height: 52px; border-radius: var(--oh-radius-lg);
+  display: grid; place-items: center;
+  color: var(--oh-sidebar-ink); text-decoration: none;
+  transition: background .15s;
+}
+.oh-nav-link:hover { background: rgba(255,255,255,.08); }
+.oh-nav-link[aria-current="page"] { background: var(--oh-gold); color: var(--oh-ink); }
+
+.oh-main {
+  flex: 1; min-width: 0;
+  padding: 36px var(--oh-pad-x) 40px;
+  display: flex; flex-direction: column; gap: var(--oh-gap);
+}
+
+/* ---------- Page header ---------- */
+.oh-header { display: flex; flex-wrap: wrap; justify-content: space-between;
+             align-items: flex-end; gap: 20px; }
+.oh-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .12em;
+              text-transform: uppercase; color: var(--oh-gold-text); }
+.oh-title { margin: 6px 0 0; font-family: var(--oh-font-display); font-weight: 400;
+            font-size: 48px; letter-spacing: -.02em; line-height: 1; }
+.oh-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- Buttons ---------- */
+.oh-btn {
+  height: 44px; padding: 0 18px; border-radius: var(--oh-radius);
+  font-weight: 600; font-size: 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.oh-btn--outline { border: 1px solid var(--oh-ink); background: transparent; color: var(--oh-ink); }
+.oh-btn--solid   { border: none; background: var(--oh-ink); color: var(--oh-bg); }
+.oh-btn--outline:hover { background: var(--oh-highlight); }
+.oh-btn--solid:hover   { background: #3A3427; }
+
+.oh-chip-btn {
+  height: 36px; padding: 0 12px; border-radius: var(--oh-radius-sm);
+  border: 1px solid var(--oh-line-strong); background: var(--oh-surface); color: var(--oh-ink);
+  font-size: 13px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.oh-chip-btn--icon { width: 36px; padding: 0; justify-content: center; }
+.oh-chip-btn:hover { border-color: var(--oh-ink); }
+
+/* ---------- Week strip ---------- */
+.oh-week {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-top: 2px solid var(--oh-ink); border-bottom: 1px solid var(--oh-line-strong);
+}
+.oh-day {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 14px 16px; border: none; background: transparent; color: var(--oh-ink); text-align: left;
+}
+.oh-day:hover { background: #F7F2E6; }
+.oh-day[aria-pressed="true"] { background: var(--oh-highlight); box-shadow: inset 0 -3px 0 var(--oh-ink); }
+.oh-day__name  { font-size: 13px; font-weight: 600; letter-spacing: .06em;
+                 text-transform: uppercase; color: var(--oh-ink-3); }
+.oh-day__date  { font-family: var(--oh-font-display); font-size: 26px; }
+.oh-day__hours { font-family: var(--oh-font-mono); font-size: 13px; color: var(--oh-ink-2); }
+
+/* ---------- Entries ---------- */
+.oh-entries { display: flex; flex-direction: column; gap: 12px; }
+.oh-entries__head { display: flex; flex-wrap: wrap; justify-content: space-between;
+                    align-items: baseline; gap: 12px; }
+.oh-entries__title { margin: 0; font-family: var(--oh-font-display); font-weight: 500; font-size: 24px; }
+.oh-entries__total { font-family: var(--oh-font-mono); font-size: 14px; color: var(--oh-ink-2); }
+
+.oh-table-wrap { overflow-x: auto; }
+.oh-table { width: 100%; min-width: 960px; border-collapse: collapse; }
+.oh-table th {
+  text-align: left; padding: 10px 12px;
+  font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--oh-ink-3); border-bottom: 1px solid var(--oh-ink);
+}
+.oh-table td { padding: 16px 12px; border-bottom: 1px solid var(--oh-line); vertical-align: middle; }
+.oh-table th:first-child, .oh-table td:first-child { padding-left: 0; }
+.oh-table th:last-child,  .oh-table td:last-child  { padding-right: 0; text-align: right; }
+.oh-table tbody tr:hover { background: #FAF6EC; }
+
+.oh-mono    { font-family: var(--oh-font-mono); font-size: 14px; white-space: nowrap; }
+.oh-hours   { font-weight: 500; }
+.oh-purpose { font-weight: 600; }
+.oh-notes   { color: var(--oh-ink-2); }
+
+.oh-matter { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.oh-matter::before { content: ""; width: 10px; height: 10px; border-radius: 50%;
+                     background: var(--oh-matter-color, var(--oh-matter-6)); }
+.oh-matter[data-color="5"] { --oh-matter-color: var(--oh-matter-5); }
+.oh-matter[data-color="6"] { --oh-matter-color: var(--oh-matter-6); }
+.oh-matter[data-color="1"] { --oh-matter-color: var(--oh-matter-1); }
+.oh-matter[data-color="2"] { --oh-matter-color: var(--oh-matter-2); }
+.oh-matter[data-color="3"] { --oh-matter-color: var(--oh-matter-3); }
+.oh-matter[data-color="4"] { --oh-matter-color: var(--oh-matter-4); }
+
+.oh-case-select {
+  height: 36px; max-width: 220px; padding: 0 30px 0 10px;
+  border: 1px solid var(--oh-line-strong); border-radius: var(--oh-radius-sm);
+  background: var(--oh-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2326231C' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  appearance: none; font: inherit; font-size: 14px; color: var(--oh-ink);
+}
+.oh-case-select:hover { border-color: var(--oh-ink); }
+.oh-by { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--oh-ink-3); }
+.oh-empty { padding: 40px 0; text-align: center; color: var(--oh-ink-3); }
+
+.oh-row-actions { display: inline-flex; justify-content: flex-end; gap: 6px; }
+.oh-chip-btn:disabled { opacity: .45; cursor: not-allowed; border-color: var(--oh-line-strong); }
+
+/* ---------- Voice dock ---------- */
+.oh-dock {
+  margin-top: auto;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+  background: var(--oh-dock); color: var(--oh-dock-ink);
+  border-radius: 999px; padding: 10px 10px 10px 28px;
+}
+.oh-dock__title { font-family: var(--oh-font-display); font-size: 19px; }
+.oh-dock__hint  { flex: 1 1 240px; font-size: 14px; color: var(--oh-dock-muted); }
+.oh-record {
+  height: 48px; padding: 0 22px; border-radius: 999px; border: none;
+  background: var(--oh-sage); color: var(--oh-sage-ink);
+  font-weight: 600; font-size: 15px;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.oh-record[aria-pressed="true"] { background: #E3B9A6; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 800px) {
+  :root { --oh-pad-x: 16px; --oh-gap: 20px; }
+  .oh-app { flex-direction: column; }
+  .oh-sidebar { width: 100%; flex-direction: row; padding: 10px 16px; overflow-x: auto; }
+  .oh-sidebar__logo { margin: 0 8px 0 0; }
+  .oh-sidebar__spacer { display: none; }
+  .oh-nav-link { width: 44px; height: 44px; }
+  .oh-main { padding-top: 24px; }
+  .oh-title { font-size: 36px; }
+  .oh-day { padding: 10px 8px; }
+  .oh-day { padding: 10px 4px; align-items: center; }
+  .oh-day__date { font-size: 20px; }
+  .oh-day__unit { display: none; }
+  .oh-dock { border-radius: 20px; padding: 16px; }
+  .oh-record { width: 100%; justify-content: center; }
+}

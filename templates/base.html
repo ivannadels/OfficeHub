@@ -5,48 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}OfficeHub{% endblock %}</title>
   <link rel="icon" href="/static/img/logo.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/officehub.css">
 </head>
 <body>
-  <aside class="sidebar">
-    <nav class="nav-top">
-      <a href="#" class="nav-item {{ 'active' if active == 'profile' }}" title="Profile">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9.5" r="3.5" fill="currentColor"/><path d="M5.5 18.5c1.5-2.6 4-3.8 6.5-3.8s5 1.2 6.5 3.8" fill="currentColor"/></svg>
-      </a>
-      <a href="/" class="nav-item {{ 'active' if active == 'time' }}" title="Time Tracker">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6H8"/></svg>
-      </a>
-      <a href="#" class="nav-item {{ 'active' if active == 'calendar' }}" title="Calendar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M7 3v4M17 3v4"/></svg>
-      </a>
-      <a href="#" class="nav-item {{ 'active' if active == 'tasks' }}" title="Tasks">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7.5 12.5l3 3 6-7"/></svg>
-      </a>
-      <a href="#" class="nav-item {{ 'active' if active == 'messages' }}" title="Messages">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><circle cx="8" cy="10.5" r="1.3" fill="currentColor"/><circle cx="12" cy="10.5" r="1.3" fill="currentColor"/><circle cx="16" cy="10.5" r="1.3" fill="currentColor"/></svg>
-      </a>
-    </nav>
-    <a href="#" class="nav-item settings" title="Settings">
-      <img src="/static/img/settings.svg" alt="Settings">
-    </a>
-  </aside>
 
-  <div class="main">
-    <header class="topbar">
-      <a href="/" class="brand">
-        <img src="/static/img/logo.svg" alt="" class="brand-logo">
-        <span>OfficeHub</span>
-      </a>
-      <button class="avatar" title="Account">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#000" stroke-width="1.4"/><circle cx="12" cy="9.5" r="4" fill="#000"/><path d="M4.5 19.5c1.8-3 4.6-4.4 7.5-4.4s5.7 1.4 7.5 4.4A11 11 0 0 1 12 23a11 11 0 0 1-7.5-3.5z" fill="#000"/></svg>
-      </button>
-    </header>
+<!-- Icon sprite: referenced below with <use href="#i-name"> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 34 34"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><circle cx="25" cy="7" r="4"/><circle cx="17" cy="17" r="4"/><circle cx="9" cy="27" r="4"/><circle cx="25" cy="27" r="4"/><path d="M12 9.5l2.5 4.5M22 9.5l-2.5 4.5M14.5 20l-2.5 4.5M19.5 20l2.5 4.5M13 7h8"/></g></symbol>
+  <symbol id="i-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-tasks" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-messages" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17A2.5 2.5 0 0 1 4 14.5z"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+  <symbol id="i-memo" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-email" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+</svg>
 
-    <main class="content">
-      {% block content %}{% endblock %}
-    </main>
-  </div>
+{% macro nav_link(page, href, label, icon) -%}
+  <a class="oh-nav-link" href="{{ href }}" data-page="{{ page }}" aria-label="{{ label }}"
+     {%- if active == page %} aria-current="page"{% endif %}><svg class="oh-icon"><use href="#i-{{ icon }}"/></svg></a>
+{%- endmacro %}
+
+<div class="oh-app">
+  <nav class="oh-sidebar" aria-label="Main">
+    <div class="oh-sidebar__logo" aria-hidden="true"><svg><use href="#i-logo"/></svg></div>
+    {{ nav_link("profile", "/profile", "Profile", "profile") }}
+    {{ nav_link("time_tracker", "/time-tracker", "Time tracker", "clock") }}
+    {{ nav_link("calendar", "/calendar", "Calendar", "calendar") }}
+    {{ nav_link("tasks", "/tasks", "Tasks", "tasks") }}
+    {{ nav_link("messages", "/messages", "Messages", "messages") }}
+    <span class="oh-sidebar__spacer"></span>
+    {{ nav_link("settings", "/settings", "Settings", "settings") }}
+  </nav>
+
+  <main class="oh-main">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>

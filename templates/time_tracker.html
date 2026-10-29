@@ -2,79 +2,81 @@
 {% block title %}Time Tracker · OfficeHub{% endblock %}
 
 {% block content %}
-<h1 class="page-title">Time Tracker</h1>
+<header class="oh-header">
+  <div>
+    <div class="oh-eyebrow">OfficeHub</div>
+    <h1 class="oh-title">Time Tracker</h1>
+  </div>
+  <div class="oh-actions">
+    <button class="oh-btn oh-btn--outline" type="button" data-action="manual-entry">Manual entry</button>
+    <button class="oh-btn oh-btn--solid"   type="button" data-action="export">Export timesheet</button>
+  </div>
+</header>
 
-<div class="mode-toggle">
-  <button class="btn btn-primary">Manual Entry</button>
-  <button class="btn btn-secondary">🎤 Voice Memo</button>
-</div>
+<!-- Week strip: built from the dates in time_entries -->
+<section class="oh-week" id="oh-week" aria-label="Week"></section>
 
-<div class="table-card">
-  <table class="tracker">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Purpose</th>
-        <th>Case</th>
-        <th>Time</th>
-        <th>Notes</th>
-        <th colspan="3" class="menu-cell">
-          <button class="menu-btn" title="Options"><span></span><span></span><span></span></button>
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for e in time_entries %}
-      <tr data-entry-id="{{ e.entry_id }}">
-        {# Built from parts instead of strftime: Windows has no flag to drop leading zeros #}
-        <td><span class="pill">{{ e.date.month }}/{{ e.date.day }}/{{ e.date.year }}</span></td>
-        <td>{{ e.purpose }}</td>
-        <td>
-          <select class="pill pill-select">
-            {% if e.case not in case_options %}
-            <option selected>{{ e.case }}</option>
-            {% endif %}
-            {% for opt in case_options %}
-            <option {{ 'selected' if opt == e.case }}>{{ opt }}</option>
-            {% endfor %}
-          </select>
-        </td>
-        <td class="time">{{ e.time.strftime('%I:%M %p').lstrip('0') }}</td>
-        <td class="notes">{{ e.notes }}</td>
-        <td class="action"><button class="btn-memo">Memo &rarr;</button></td>
-        <td class="action">
-          <button class="icon-btn" title="Email">
-            <svg viewBox="0 0 48 34" fill="#fff" stroke="#000" stroke-width="2.2" stroke-linejoin="round"><rect x="1.5" y="1.5" width="45" height="31" rx="2"/><path d="M1.5 1.5L24 20 46.5 1.5M1.5 32.5L19 16M46.5 32.5L29 16" fill="none"/></svg>
-          </button>
-        </td>
-        <td class="action">
-          <button class="icon-btn" title="Add to calendar">
-            <svg viewBox="0 0 40 42" fill="none" stroke="#000" stroke-width="1.8">
-              <rect x="1.5" y="4" width="37" height="36" rx="4" fill="#fff"/>
-              <path d="M1.5 12h37"/>
-              <path d="M6 1v6M9 1v6M12 1v6M15 1v6M18 1v6M21 1v6M24 1v6M27 1v6M30 1v6M33 1v6" stroke-width="1.4"/>
-              <g fill="#000" stroke="none">
-                {% for row in range(4) %}{% for col in range(6) %}
-                <rect x="{{ 6 + col * 5 }}" y="{{ 17 + row * 5.5 }}" width="2.4" height="2.4"/>
-                {% endfor %}{% endfor %}
-              </g>
-            </svg>
-          </button>
-        </td>
-      </tr>
-      {% else %}
-      <tr class="empty-row">
-        <td colspan="8">No entries yet. Add one with Manual Entry or Voice Memo.</td>
-      </tr>
-      {% endfor %}
-      <tr class="add-row">
-        <td colspan="8">
-          <button class="pill add-pill" title="Add entry">
-            <img src="/static/img/calendar.svg" alt="">
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<section class="oh-entries" aria-labelledby="oh-day-title">
+  <div class="oh-entries__head">
+    <h2 class="oh-entries__title" id="oh-day-title"></h2>
+    <span class="oh-entries__total" id="oh-day-total"></span>
+  </div>
+  <div class="oh-table-wrap">
+    <table class="oh-table">
+      <thead>
+        <tr>
+          <th scope="col">Time</th>
+          <th scope="col">Case</th>
+          <th scope="col">Purpose</th>
+          <th scope="col">Notes</th>
+          <th scope="col">Outputs</th>
+        </tr>
+      </thead>
+      <tbody id="oh-rows"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="oh-dock" aria-label="Voice memo">
+  <span class="oh-dock__title">Dictate an entry</span>
+  <span class="oh-dock__hint">Say the case, what you worked on and when. It becomes an entry, a transcript and an email draft.</span>
+  <button class="oh-record" type="button" data-action="record" aria-pressed="false">
+    <svg class="oh-icon"><use href="#i-mic"/></svg>
+    Hold to record
+  </button>
+</section>
+
+<!-- One row of time_entries. Fields are filled by time_tracker.js. -->
+<template id="oh-row-template">
+  <tr data-entry-id="">
+    <td class="oh-mono" data-field="time"></td>
+    <td>
+      <span class="oh-matter" data-color="">
+        <label class="visually-hidden" data-field="case-label">Case</label>
+        <select class="oh-case-select" data-field="case"></select>
+      </span>
+    </td>
+    <td class="oh-purpose">
+      <span data-field="purpose"></span>
+      <span class="oh-by" data-field="user_name"></span>
+    </td>
+    <td class="oh-notes" data-field="notes"></td>
+    <td>
+      <div class="oh-row-actions">
+        <button class="oh-chip-btn" type="button" data-action="memo"><svg class="oh-icon oh-icon--sm"><use href="#i-memo"/></svg>Memo</button>
+        <button class="oh-chip-btn" type="button" data-action="email"><svg class="oh-icon oh-icon--sm"><use href="#i-email"/></svg>Email</button>
+        <button class="oh-chip-btn oh-chip-btn--icon" type="button" data-action="calendar" aria-label="Add to calendar"><svg class="oh-icon oh-icon--sm"><use href="#i-calendar"/></svg></button>
+      </div>
+    </td>
+  </tr>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/time_tracker.js"></script>
+<script src="/static/js/time_tracker_actions.js"></script>
+<script>
+  // Data comes from the database via the page route in backend/main.py
+  OfficeHubTimeTracker.render({{ page_data | tojson }});
+</script>
 {% endblock %}
