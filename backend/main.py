@@ -30,6 +30,24 @@ app.include_router(cases.router)
 
 
 # ---------- Pages ----------
+# Until there is login, every entry made from the UI is logged under this name
+CURRENT_USER_NAME = "Demo User"
+
+
+def render_page(request: Request, db: Session, template: str, active: str):
+    """Render a page whose JS renderer gets entries + cases as JSON (same shape as the API)."""
+    page_data = {
+        "active": active,
+        "user_name": CURRENT_USER_NAME,
+        "case_options": cases.list_case_names(db),
+        "time_entries": [
+            time_tracker.EntryRead.model_validate(e).model_dump(mode="json")
+            for e in time_tracker.query_entries(db)
+        ],
+    }
+    return templates.TemplateResponse(request, template, {"page_data": page_data, "active": active})
+
+
 @app.get("/", include_in_schema=False)
 def home():
     return RedirectResponse("/time-tracker")
@@ -37,17 +55,9 @@ def home():
 
 @app.get("/time-tracker", response_class=HTMLResponse)
 def time_tracker_page(request: Request, db: Session = Depends(get_db)):
-    # Same shape as GET /api/entries, handed to the page's JS renderer as JSON
-    page_data = {
-        "active": "time_tracker",
-        "case_options": cases.list_case_names(db),
-        "time_entries": [
-            time_tracker.EntryRead.model_validate(e).model_dump(mode="json")
-            for e in time_tracker.query_entries(db)
-        ],
-    }
-    return templates.TemplateResponse(
-        request,
-        "time_tracker.html",
-        {"page_data": page_data, "active": page_data["active"]},
-    )
+    return render_page(request, db, "time_tracker.html", active="time_tracker")
+
+
+@app.get("/calendar", response_class=HTMLResponse)
+def calendar_page(request: Request, db: Session = Depends(get_db)):
+    return render_page(request, db, "calendar.html", active="calendar")

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Calendar · OfficeHub{% endblock %}
+
+{% block content %}
+<header class="oh-header">
+  <div>
+    <div class="oh-eyebrow">OfficeHub</div>
+    <h1 class="oh-title">Calendar</h1>
+  </div>
+  <div class="oh-actions">
+    <button class="oh-btn oh-btn--solid" type="button" id="cal-new">New entry</button>
+  </div>
+</header>
+
+<div class="oh-cal">
+
+  <aside class="oh-cal__side" aria-label="Calendar filters">
+    <section aria-labelledby="cal-mini-title">
+      <div class="oh-mini__head">
+        <span class="oh-mini__title" id="cal-mini-title"></span>
+        <div>
+          <button type="button" class="oh-mini__nav" id="cal-mini-prev" aria-label="Previous month"><svg class="oh-icon oh-icon--sm"><use href="#i-left"/></svg></button>
+          <button type="button" class="oh-mini__nav" id="cal-mini-next" aria-label="Next month"><svg class="oh-icon oh-icon--sm"><use href="#i-right"/></svg></button>
+        </div>
+      </div>
+      <div class="oh-mini__grid" id="cal-mini"></div>
+    </section>
+
+    <fieldset class="oh-checks">
+      <legend class="oh-side-title">Cases</legend>
+      <div id="cal-cases"></div>
+    </fieldset>
+
+    <fieldset class="oh-checks">
+      <legend class="oh-side-title">Show</legend>
+      <label class="oh-filter" id="cal-mine-wrap"><input type="checkbox" id="cal-mine"> Only my entries</label>
+      <label class="oh-filter"><input type="checkbox" id="cal-voice"> Only with voice notes</label>
+    </fieldset>
+  </aside>
+
+  <section class="oh-cal__main" aria-labelledby="cal-range">
+    <div class="oh-cal__bar">
+      <div class="oh-nav-pair">
+        <button type="button" class="oh-icon-btn" id="cal-prev" aria-label="Previous week"><svg class="oh-icon oh-icon--sm"><use href="#i-left"/></svg></button>
+        <button type="button" class="oh-icon-btn" id="cal-next" aria-label="Next week"><svg class="oh-icon oh-icon--sm"><use href="#i-right"/></svg></button>
+      </div>
+      <h2 class="oh-cal__range" id="cal-range"></h2>
+      <button type="button" class="oh-chip-btn" id="cal-today">Today</button>
+      <span class="oh-cal__count" id="cal-count"></span>
+    </div>
+
+    <div class="oh-week-scroll" id="cal-scroll">
+      <div class="oh-wg" id="cal-grid"></div>
+
+      <!-- Entry popover (one, reused) -->
+      <div class="oh-pop" id="cal-pop" role="dialog" aria-labelledby="cal-pop-title" hidden>
+        <button type="button" class="oh-icon-btn oh-pop__close" data-pop="close" aria-label="Close"><svg class="oh-icon oh-icon--sm"><use href="#i-close"/></svg></button>
+        <div class="oh-pop__case"><span class="oh-dot" data-pop="dot"></span><span data-pop="case"></span></div>
+        <div>
+          <div class="oh-pop__title" id="cal-pop-title" data-pop="purpose"></div>
+          <div class="oh-pop__when" data-pop="when"></div>
+        </div>
+        <p class="oh-pop__notes" data-pop="notes"></p>
+        <div class="oh-pop__meta" data-pop="meta"></div>
+        <div class="oh-pop__actions">
+          <button type="button" class="oh-chip-btn" data-pop="memo"><svg class="oh-icon oh-icon--sm"><use href="#i-memo"/></svg>Memo</button>
+          <button type="button" class="oh-chip-btn" data-pop="email"><svg class="oh-icon oh-icon--sm"><use href="#i-email"/></svg>Email</button>
+          <button type="button" class="oh-btn oh-btn--solid" data-pop="edit">Edit</button>
+        </div>
+      </div>
+    </div>
+    <p class="oh-hint" style="margin:0">Click an empty slot to start an entry at that day and time.</p>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/entry_drawer.js"></script>
+<script src="/static/js/calendar.js"></script>
+<script src="/static/js/entry_actions.js"></script>
+<script>
+  // Data comes from the database via the page route in backend/main.py
+  const pageData = {{ page_data | tojson }};
+  OfficeHubCalendar.render(pageData);
+  OfficeHubEntries.init({
+    data: pageData,
+    rerender: (data, focusDate) => {
+      OfficeHubCalendar.render(data);              // keeps the week you're looking at
+      if (focusDate) OfficeHubCalendar.goTo(focusDate);
+    },
+  });
+</script>
+{% endblock %}

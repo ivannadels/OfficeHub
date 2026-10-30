@@ -5,8 +5,11 @@
      time_entries: [{ entry_id, date, time, purpose, case, notes,
                       voice_note, user_name, created_at, updated_at }],
      case_options: ["Case A", "Case B", ...],
-     active: "time_tracker"   // matches data-page on a sidebar link
+     active: "time_tracker",  // matches data-page on a sidebar link
+     user_name: "J. Rivera",  // optional — signed-in person, prefills the entry drawer
+     selected_date: "2035-04-01"  // optional — jump the week strip to this day
    });
+   "Manual entry" opens the side drawer (entry_drawer.js) if it is loaded.
 
    Expected formats
      date        "YYYY-MM-DD"
@@ -17,7 +20,7 @@
    User actions are emitted as one DOM event you can listen for:
      document.addEventListener("officehub:action", (e) => {
        const { action, entry, value } = e.detail;
-       // action: "memo" | "email" | "calendar" | "case-change"
+       // action: "memo" | "email" | "calendar" | "edit" | "case-change"
        //         | "manual-entry" | "export" | "record-start" | "record-stop"
      });
    ========================================================================== */
@@ -58,6 +61,14 @@
     return state.time_entries
       .filter(function (e) { return e.date === iso; })
       .sort(function (a, b) { return String(a.time).localeCompare(String(b.time)); });
+  }
+
+  function recentCases() {                  // most recently touched cases, newest first
+    var seen = [];
+    state.time_entries.slice()
+      .sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); })
+      .forEach(function (e) { if (e["case"] && seen.indexOf(e["case"]) < 0) seen.push(e["case"]); });
+    return seen;
   }
 
   // ---------- sidebar ----------
@@ -178,7 +189,17 @@
   // ---------- page-level buttons ----------
   function bindPageActions() {
     document.querySelectorAll('.oh-header [data-action]').forEach(function (btn) {
-      btn.addEventListener("click", function () { emit(btn.dataset.action); });
+      btn.addEventListener("click", function () {
+        if (btn.dataset.action === "manual-entry" && window.OfficeHubEntryDrawer) {
+          window.OfficeHubEntryDrawer.open({
+            case_options: state.case_options,
+            recent_cases: recentCases(),
+            defaults: { user_name: state.user_name }   // no date: the drawer defaults to today
+          });
+          return;
+        }
+        emit(btn.dataset.action);
+      });
     });
     var rec = document.querySelector('[data-action="record"]');
     if (rec) {
@@ -208,9 +229,12 @@
       state.time_entries = Array.isArray(data.time_entries) ? data.time_entries : [];
       state.case_options = Array.isArray(data.case_options) ? data.case_options : [];
       state.active = data.active || null;
+      state.user_name = data.user_name || "";   // optional: signed-in person, prefills the drawer
 
-      // Default to the most recent date that has entries (or today)
-      if (!state.selectedDate || !state.time_entries.some(function (e) { return e.date === state.selectedDate; })) {
+      if (data.selected_date) {
+        state.selectedDate = data.selected_date;
+      } else if (!state.selectedDate || !state.time_entries.some(function (e) { return e.date === state.selectedDate; })) {
+        // Default to the most recent date that has entries (or today)
         var dates = state.time_entries.map(function (e) { return e.date; }).sort();
         state.selectedDate = dates.length ? dates[dates.length - 1] : toISO(new Date());
       }
@@ -219,6 +243,7 @@
       renderWeek();
       renderRows();
       if (!bound) { bindPageActions(); bound = true; }
-    }
+    },
+    recentCases: recentCases
   };
 })();

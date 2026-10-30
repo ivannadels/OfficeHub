@@ -20,11 +20,11 @@ def test_delete_case(client):
     assert client.delete(f"/api/cases/{case['case_id']}").status_code == 404
 
 
-def page_data(client):
-    """Pull the JSON the page hands to OfficeHubTimeTracker.render(...)."""
-    html = client.get("/time-tracker").text
-    match = re.search(r"OfficeHubTimeTracker\.render\((.*)\);", html)
-    assert match, "render() call not found in page"
+def page_data(client, path="/time-tracker"):
+    """Pull the JSON the page hands to its JS renderer (`const pageData = {...};`)."""
+    html = client.get(path).text
+    match = re.search(r"const pageData = (.*);", html)
+    assert match, "pageData not found in page"
     return json.loads(match.group(1))
 
 
@@ -57,6 +57,28 @@ def test_page_data_matches_db(client):
     assert entry["date"] == "2026-04-01"      # ISO, as time_tracker.js expects
     assert entry["time"].startswith("13:05")  # 24h "HH:MM..."
     assert entry["entry_id"] > 0
+
+
+def test_page_data_has_user_name(client):
+    assert page_data(client)["user_name"] == "Demo User"
+
+
+def test_calendar_page(client):
+    client.post("/api/entries", json={"date": "2026-04-01", "time": "10:30", "purpose": "Court appearance",
+                                      "case": "Okafor v. Hale"})
+    r = client.get("/calendar")
+    assert r.status_code == 200
+    assert 'data-page="calendar" aria-label="Calendar" aria-current="page"' in r.text
+    data = page_data(client, "/calendar")
+    assert data["active"] == "calendar"
+    assert [e["purpose"] for e in data["time_entries"]] == ["Court appearance"]
+
+
+def test_both_pages_load_drawer_and_actions(client):
+    for path in ("/time-tracker", "/calendar"):
+        html = client.get(path).text
+        assert "/static/js/entry_drawer.js" in html, path
+        assert "/static/js/entry_actions.js" in html, path
 
 
 def test_page_escapes_html_in_data(client):

@@ -63,6 +63,7 @@
     <td class="oh-notes" data-field="notes"></td>
     <td>
       <div class="oh-row-actions">
+        <button class="oh-chip-btn" type="button" data-action="edit">Edit</button>
         <button class="oh-chip-btn" type="button" data-action="memo"><svg class="oh-icon oh-icon--sm"><use href="#i-memo"/></svg>Memo</button>
         <button class="oh-chip-btn" type="button" data-action="email"><svg class="oh-icon oh-icon--sm"><use href="#i-email"/></svg>Email</button>
         <button class="oh-chip-btn oh-chip-btn--icon" type="button" data-action="calendar" aria-label="Add to calendar"><svg class="oh-icon oh-icon--sm"><use href="#i-calendar"/></svg></button>
@@ -73,10 +74,16 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/entry_drawer.js"></script>
 <script src="/static/js/time_tracker.js"></script>
-<script src="/static/js/time_tracker_actions.js"></script>
+<script src="/static/js/entry_actions.js"></script>
 <script>
   // Data comes from the database via the page route in backend/main.py
-  OfficeHubTimeTracker.render({{ page_data | tojson }});
+  const pageData = {{ page_data | tojson }};
+  OfficeHubTimeTracker.render(pageData);
+  OfficeHubEntries.init({
+    data: pageData,
+    rerender: (data, focusDate) => OfficeHubTimeTracker.render({ ...data, selected_date: focusDate }),
+  });
 </script>
 {% endblock %}
