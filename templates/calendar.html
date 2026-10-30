@@ -75,9 +75,10 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/entry_drawer.js"></script>
-<script src="/static/js/calendar.js"></script>
-<script src="/static/js/entry_actions.js"></script>
+<script src="{{ static_url('js/entry_drawer.js') }}"></script>
+<script src="{{ static_url('js/voice_recorder.js') }}"></script>
+<script src="{{ static_url('js/calendar.js') }}"></script>
+<script src="{{ static_url('js/entry_actions.js') }}"></script>
 <script>
   // Data comes from the database via the page route in backend/main.py
   const pageData = {{ page_data | tojson }};

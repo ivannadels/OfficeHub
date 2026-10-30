@@ -7,8 +7,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from backend.database import Base, engine, get_db
-from backend.routes import cases, time_tracker
+from backend.database import Base, SessionLocal, engine, get_db
+from backend.routes import cases, recordings, time_tracker
 
 # templates/ and static/ live at the project root, one level above backend/
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,6 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 async def lifespan(app: FastAPI):
     # Runs once at startup: create any missing tables (every model is imported above)
     Base.metadata.create_all(bind=engine)
+    recordings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    with SessionLocal() as db:  # recordings are only kept if their entry was saved
+        recordings.purge_unattached_recordings(db)
     yield
 
 
@@ -25,8 +28,20 @@ app = FastAPI(title="OfficeHub", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
+
+def static_url(path: str) -> str:
+    """/static/<path>?v=<last-modified time>: browsers re-download a file as soon as it changes,
+    instead of running a stale cached copy."""
+    file = BASE_DIR / "static" / path
+    version = int(file.stat().st_mtime) if file.exists() else 0
+    return f"/static/{path}?v={version}"
+
+
+templates.env.globals["static_url"] = static_url
+
 app.include_router(time_tracker.router)
 app.include_router(cases.router)
+app.include_router(recordings.router)
 
 
 # ---------- Pages ----------

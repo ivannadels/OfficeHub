@@ -60,15 +60,54 @@
     return seen;
   }
 
+  // ---------- Memo: play back the entry's voice note ----------
+  let memo = null;
+  function openMemo(entry) {
+    if (!entry || !entry.voice_note) return;
+    if (!memo) {
+      memo = document.createElement("dialog");
+      memo.className = "oh-memo";
+      memo.setAttribute("aria-labelledby", "oh-memo-title");
+      memo.innerHTML =
+        '<div class="oh-eyebrow">Voice memo</div>' +
+        '<h2 class="oh-memo__title" id="oh-memo-title" data-m="title"></h2>' +
+        '<div class="oh-memo__when" data-m="when"></div>' +
+        '<audio class="oh-memo__player" data-m="player" controls preload="metadata"></audio>' +
+        '<div class="oh-memo__transcript"><span class="oh-field__label">Transcript</span>' +
+        '<p data-m="transcript">Not available yet. Transcription is the next stage.</p></div>' +
+        '<div class="oh-memo__actions">' +
+        '<a class="oh-chip-btn" data-m="download" download>Download audio</a>' +
+        '<button type="button" class="oh-btn oh-btn--solid" data-m="close">Close</button></div>';
+      document.body.appendChild(memo);
+      const close = () => { memo.querySelector('[data-m="player"]').pause(); memo.close ? memo.close() : memo.removeAttribute("open"); };
+      memo.querySelector('[data-m="close"]').addEventListener("click", close);
+      memo.addEventListener("click", (e) => { if (e.target === memo) close(); });   // click on the backdrop
+      memo.addEventListener("close", () => memo.querySelector('[data-m="player"]').pause());
+    }
+    const $ = (k) => memo.querySelector('[data-m="' + k + '"]');
+    $("title").textContent = entry.purpose || "Voice memo";
+    $("when").textContent = [entry.case, entry.date, String(entry.time || "").slice(0, 5)].filter(Boolean).join(" · ");
+    $("player").src = entry.voice_note;
+    $("download").href = entry.voice_note;
+    memo.showModal ? memo.showModal() : memo.setAttribute("open", "");
+  }
+
   const handlers = {
     // From the drawer: new entry (entry_id null) or edit (entry_id set)
     "entry-save": ({ entry }) => {
       const body = { date: entry.date, time: entry.time, purpose: entry.purpose, case: entry.case, notes: entry.notes };
       const isNew = entry.entry_id == null;
       if (isNew) body.user_name = entry.user_name || null;
-      return attempt(isNew ? "save the entry" : "save your changes", () =>
-        isNew ? api("POST", "/api/entries", body) : api("PATCH", "/api/entries/" + entry.entry_id, body),
-      entry.date);
+      if ("recording_id" in entry) body.recording_id = entry.recording_id;   // only when the voice note changed
+      return attempt(isNew ? "save the entry" : "save your changes", async () => {
+        try {
+          await (isNew ? api("POST", "/api/entries", body) : api("PATCH", "/api/entries/" + entry.entry_id, body));
+        } catch (err) {
+          // The entry wasn't saved, so a newly recorded note must not survive either
+          if (body.recording_id != null) api("DELETE", "/api/recordings/" + body.recording_id).catch(console.error);
+          throw err;
+        }
+      }, entry.date);
     },
 
     // From the drawer's Delete button (edit mode only)
@@ -81,6 +120,9 @@
     "case-change": ({ entry, value }) =>
       attempt("change the case", () => api("PATCH", "/api/entries/" + entry.entry_id, { case: value }), entry.date),
 
+    // Memo button (Time Tracker row or Calendar popover)
+    "memo": ({ entry }) => openMemo(entry),
+
     // Time Tracker: Edit chip on a row
     "edit": ({ entry }) => {
       window.OfficeHubEntryDrawer.open({
@@ -92,10 +134,14 @@
     },
   };
 
+  // Handled by voice_recorder.js
+  const handledElsewhere = new Set(["voice-note-record-start", "voice-note-record-stop", "voice-note-record-cancel",
+                                    "voice-note-upload", "voice-note-discard"]);
+
   document.addEventListener("officehub:action", (e) => {
     const handler = handlers[e.detail.action];
     if (handler) handler(e.detail);
-    else console.info("[OfficeHub] not implemented yet:", e.detail.action, e.detail.entry);
+    else if (!handledElsewhere.has(e.detail.action)) console.info("[OfficeHub] not implemented yet:", e.detail.action, e.detail.entry);
   });
 
   window.OfficeHubEntries = {

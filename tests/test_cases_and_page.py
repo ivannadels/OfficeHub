@@ -86,3 +86,12 @@ def test_page_escapes_html_in_data(client):
                                       "case": "c", "notes": "</script><script>alert(1)</script>"})
     html = client.get("/time-tracker").text
     assert "</script><script>alert(1)" not in html
+
+
+def test_static_links_are_versioned(client):
+    """Each script/stylesheet URL carries ?v=<mtime> so browsers never run a stale cached copy."""
+    for path in ("/time-tracker", "/calendar"):
+        html = client.get(path).text
+        for asset in ("css/officehub.css", "js/entry_drawer.js", "js/voice_recorder.js", "js/entry_actions.js"):
+            assert re.search(rf'/static/{re.escape(asset)}\?v=\d{{9,}}"', html), (path, asset)
+    assert client.get("/static/js/voice_recorder.js?v=123").status_code == 200  # query string is ignored when serving

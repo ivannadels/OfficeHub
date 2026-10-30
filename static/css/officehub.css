@@ -409,6 +409,28 @@ textarea.oh-input { height: auto; padding: 12px 14px; line-height: 1.5; resize: 
 .oh-pop__actions .oh-btn { height: 36px; font-size: 13px; padding: 0 12px; margin-left: auto; }
 .oh-pop__close { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; }
 
+/* ==========================================================================
+   Voice notes — drawer preview + Memo player (voice_recorder.js, entry_actions.js)
+   ========================================================================== */
+.oh-voice__player { flex: 1 1 100%; width: 100%; height: 40px; }
+.oh-voice__player[hidden] { display: none; }
+
+.oh-memo {
+  width: min(440px, calc(100vw - 32px)); padding: 24px; border: 1px solid var(--oh-ink);
+  border-radius: var(--oh-radius-lg); background: var(--oh-bg); color: var(--oh-ink);
+  box-shadow: 0 24px 48px rgba(38, 35, 28, .2);
+}
+.oh-memo[open] { display: flex; flex-direction: column; gap: 14px; }
+.oh-memo::backdrop { background: rgba(38, 35, 28, .45); }
+.oh-memo__title { margin: 0; font-family: var(--oh-font-display); font-weight: 400; font-size: 28px; line-height: 1.1; }
+.oh-memo__when { font-family: var(--oh-font-mono); font-size: 13px; color: var(--oh-ink-2); }
+.oh-memo__player { width: 100%; }
+.oh-memo__transcript { display: flex; flex-direction: column; gap: 6px; padding: 12px;
+                       border: 1px dashed var(--oh-gold); border-radius: 10px; background: #FBF7EC; }
+.oh-memo__transcript p { margin: 0; font-size: 14px; color: var(--oh-ink-3); }
+.oh-memo__actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.oh-memo__actions a.oh-chip-btn { text-decoration: none; }
+
 @media (max-width: 800px) {
   .oh-drawer__head, .oh-drawer__body, .oh-drawer__foot { padding-left: 20px; padding-right: 20px; }
   .oh-drawer__title { font-size: 26px; }

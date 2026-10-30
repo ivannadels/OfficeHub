@@ -16,12 +16,24 @@
        const entry = e.detail.entry;
        //   { entry_id (null when new), date "YYYY-MM-DD", time "HH:MM",
        //     purpose, case, notes, voice_note, user_name, created_at }
-       const { draft_email, add_to_calendar, voice_file } = e.detail.value;
-       // voice_file is the File picked with "upload audio" (or null).
-       // Save it, set created_at / updated_at on your side, then re-render.
+       //   + recording_id — only present when the voice note changed (id, or null = removed)
+       const { draft_email, add_to_calendar } = e.detail.value;
      });
    When editing, the Delete button emits "entry-delete" with the entry.
-   The voice-note record button emits "voice-note-record-start" / "voice-note-record-stop".
+   Voice note: the record button emits "voice-note-record-start" / "voice-note-record-stop";
+   picking a file emits "voice-note-upload" (value = the File).
+   Closing: Save saves; Cancel (and Delete) discard; X / Esc / clicking outside only HIDE the drawer
+   and keep a draft — reopening it for the same thing (Manual entry again, or Edit on the same entry)
+   restores every field and the recording. Discarding emits "voice-note-record-cancel" (mid-recording)
+   and/or "voice-note-discard" (value = recording_id of an uploaded-but-unsaved note); replacing or
+   removing an unsaved take also discards it. Drafts live in page memory (a reload drops them; the
+   server then wipes the unattached recording after a day). Whoever handles those
+   (voice_recorder.js) reports back with:
+     OfficeHubEntryDrawer.setVoiceNote({ recording_id, audio_url, duration_seconds } | null)
+     OfficeHubEntryDrawer.setVoiceStatus(text, isError)  // "Recording… 0:12", "Uploading…", errors
+     OfficeHubEntryDrawer.setRecording(on)               // record button state
+     OfficeHubEntryDrawer.setBusy(on)                    // blocks Save while an upload runs
+     (if the drawer was hidden meanwhile, these update the kept draft instead)
    ========================================================================== */
 
 (function () {
@@ -85,6 +97,7 @@
     '      <span data-el="voiceHelp">Record or <button type="button" class="oh-link-btn" data-el="upload">upload audio</button>. It is transcribed and kept with this entry.</span>' +
     '     </div>' +
     '     <button type="button" class="oh-link-btn" data-el="removeVoice" hidden>Remove</button>' +
+    '     <audio class="oh-voice__player" data-el="player" controls preload="none" hidden></audio>' +
     '     <input type="file" accept="audio/*" data-el="file" hidden>' +
     '    </div>' +
     '   </div>' +
@@ -106,6 +119,18 @@
     '</div>';
 
   var root, el = {}, form, ctx = null, lastFocus = null;
+  var drafts = {};        // hidden-but-not-cancelled drawers: draftKey -> { ctx, fields }
+  var voiceCtx = null;    // the drawer session a recording/upload belongs to (may be hidden by now)
+  var FIELDS = ["case", "date", "time", "purpose", "notes"];
+  var CHECKS = ["draft_email", "add_to_calendar"];
+  function draftKey(entry) { return entry ? "entry:" + entry.entry_id : "new"; }
+  // Remember which drawer session a recording/upload belongs to, whoever emitted the event.
+  // Capture phase so this runs before voice_recorder.js handles the same event.
+  document.addEventListener("officehub:action", function (e) {
+    var a = e.detail && e.detail.action;
+    if ((a === "voice-note-record-start" || a === "voice-note-upload") && ctx && root && !root.hidden) voiceCtx = ctx;
+  }, true);
+  function isCurrent(c) { return c === ctx && !!root && !root.hidden; }
 
   function pad(n) { return String(n).padStart(2, "0"); }
   function todayISO() { var d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
@@ -126,17 +151,17 @@
     root.querySelectorAll("[data-el]").forEach(function (n) { el[n.dataset.el] = n; });
     form = el.form;
 
-    el.close.addEventListener("click", close);
-    el.cancel.addEventListener("click", close);
+    el.close.addEventListener("click", hide);
+    el.cancel.addEventListener("click", cancel);
     el.save.addEventListener("click", save);
     el["delete"].addEventListener("click", function () {
       if (!ctx || !ctx.entry) return;
       var entry = ctx.entry;
-      close();
+      cancel();
       emit("entry-delete", entry);
     });
     form.addEventListener("submit", function (e) { e.preventDefault(); save(); });
-    root.addEventListener("mousedown", function (e) { if (e.target === root) close(); });
+    root.addEventListener("mousedown", function (e) { if (e.target === root) hide(); });
     root.addEventListener("keydown", onKey);
 
     form.elements["case"].addEventListener("change", function () {
@@ -154,20 +179,17 @@
       var on = el.record.getAttribute("aria-pressed") !== "true";
       el.record.setAttribute("aria-pressed", on ? "true" : "false");
       el.record.setAttribute("aria-label", on ? "Stop recording" : "Record voice note");
-      el.voiceTitle.textContent = on ? "Recording…" : voiceTitle();
+      el.voiceTitle.textContent = on ? "Starting microphone…" : "Finishing recording…";
+      if (on) voiceCtx = ctx;
       emit(on ? "voice-note-record-start" : "voice-note-record-stop", ctx && ctx.entry);
     });
     el.upload.addEventListener("click", function () { el.file.click(); });
     el.file.addEventListener("change", function () {
-      ctx.voice_file = el.file.files[0] || null;
-      renderVoice();
-    });
-    el.removeVoice.addEventListener("click", function () {
-      ctx.voice_note = null;
-      ctx.voice_file = null;
+      var file = el.file.files[0];
       el.file.value = "";
-      renderVoice();
+      if (file) { voiceCtx = ctx; emit("voice-note-upload", ctx.entry, file); }
     });
+    el.removeVoice.addEventListener("click", function () { setVoiceNote(null); });
   }
 
   function chipRow(container, label, values, onPick) {
@@ -199,18 +221,66 @@
   function updateCount() {
     el.count.textContent = form.elements.notes.value.length + " / " + NOTES_MAX;
   }
+  function formatDuration(s) {
+    s = Math.round(s || 0);
+    return Math.floor(s / 60) + ":" + pad(s % 60);
+  }
   function voiceTitle() {
-    if (ctx.voice_file) return ctx.voice_file.name;
-    if (ctx.voice_note) return "Voice note attached";
-    return "Add a voice note (optional)";
+    if (!ctx.voice_note) return "Add a voice note (optional)";
+    return "Voice note attached" + (ctx.voice_duration ? " (" + formatDuration(ctx.voice_duration) + ")" : "");
   }
   function renderVoice() {
     el.voiceTitle.textContent = voiceTitle();
-    el.removeVoice.hidden = !(ctx.voice_note || ctx.voice_file);
+    el.voiceTitle.style.color = "";
+    el.removeVoice.hidden = !ctx.voice_note;
+    el.player.hidden = !ctx.voice_note;
+    if (ctx.voice_note) { if (el.player.getAttribute("src") !== ctx.voice_note) el.player.src = ctx.voice_note; }
+    else { el.player.removeAttribute("src"); }
+  }
+
+  // ---------- called by voice_recorder.js ----------
+  function discardUnsaved(c) {
+    // A note uploaded in this drawer session that hasn't been saved with the entry yet
+    if (c && c.recordingChanged && c.recording_id != null) {
+      emit("voice-note-discard", c.entry, c.recording_id);
+      c.recording_id = null;
+    }
+  }
+  function setVoiceNote(rec) {
+    var c = voiceCtx || ctx;
+    if (!c) return;
+    if (c.cancelled) {                       // the drawer was cancelled before the upload finished
+      if (rec) emit("voice-note-discard", c.entry, rec.recording_id);
+      return;
+    }
+    discardUnsaved(c);   // replacing or removing an unsaved take: delete it, keep only the latest
+    c.voice_note = rec ? rec.audio_url : null;
+    c.recording_id = rec ? rec.recording_id : null;
+    c.voice_duration = rec ? rec.duration_seconds : null;
+    c.recordingChanged = true;
+    if (isCurrent(c)) renderVoice();         // hidden: only the draft is updated
+  }
+  function setVoiceStatus(text, isError) {
+    if (!el.voiceTitle || !isCurrent(voiceCtx || ctx)) return;
+    el.voiceTitle.textContent = text;
+    el.voiceTitle.style.color = isError ? "#8A3B26" : "";
+  }
+  function setRecording(on) {
+    var c = voiceCtx || ctx;
+    if (c) c.recording = !!on;
+    if (!el.record || (c && c !== ctx)) return;
+    el.record.setAttribute("aria-pressed", on ? "true" : "false");
+    el.record.setAttribute("aria-label", on ? "Stop recording" : "Record voice note");
+  }
+  function setBusy(on) {
+    var c = voiceCtx || ctx;
+    if (!c) return;
+    c.busy = !!on;
+    if (c === ctx) el.save.disabled = !!on;
   }
 
   function onKey(e) {
-    if (e.key === "Escape") { e.preventDefault(); close(); return; }
+    if (e.key === "Escape") { e.preventDefault(); hide(); return; }
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); return; }
     if (e.key === "Tab") {                       // keep focus inside the drawer
       var f = root.querySelectorAll('button:not([hidden]), input:not([type="file"]), select, textarea');
@@ -226,11 +296,17 @@
     opts = opts || {};
     var entry = opts.entry || null;
     var d = opts.defaults || {};
+    var key = draftKey(entry);
+    if (drafts[key]) return restore(drafts[key], opts);
     ctx = {
+      key: key,
       case_options: Array.isArray(opts.case_options) ? opts.case_options : [],
       entry: entry,
       voice_note: entry ? entry.voice_note || null : null,
-      voice_file: null,
+      voice_duration: null,
+      recording_id: null,
+      recordingChanged: false,   // only send recording_id when the voice note was changed
+      busy: false,
       user_name: (entry && entry.user_name) || d.user_name || ""
     };
 
@@ -273,26 +349,105 @@
 
     // Voice + options
     el.file.value = "";
-    el.record.setAttribute("aria-pressed", "false");
+    setRecording(false);
+    el.save.disabled = false;
     renderVoice();
     form.elements.draft_email.checked = !entry;
     form.elements.add_to_calendar.checked = false;
     form.querySelectorAll("[aria-invalid]").forEach(function (n) { n.removeAttribute("aria-invalid"); });
 
+    show(entry ? form.elements.notes : sel);
+  }
+
+  function show(focusEl) {
     lastFocus = document.activeElement;
     root.hidden = false;
     document.body.style.overflow = "hidden";
-    (entry ? form.elements.notes : sel).focus();
+    focusEl.focus();
   }
 
-  function close() {
-    if (!root || root.hidden) return;
+  // Bring back a hidden drawer exactly as it was left (fields + voice note).
+  function restore(draft, opts) {
+    ctx = draft.ctx;
+    if (Array.isArray(opts.case_options) && opts.case_options.length) ctx.case_options = opts.case_options;
+    var entry = ctx.entry, f = draft.fields;
+
+    el.eyebrow.textContent = (entry ? "Edit entry" : "Manual entry") + " · draft";
+    el.title.textContent = entry ? (entry.purpose || "Edit time entry") : "New time entry";
+    el.by.textContent = ctx.user_name ? "Logged as " + ctx.user_name : "";
+    el.save.textContent = entry ? "Save changes" : "Save entry";
+    el["delete"].hidden = !entry;
+
+    var sel = form.elements["case"];
+    sel.innerHTML = "";
+    var opts2 = ctx.case_options.slice();
+    if (f["case"] && opts2.indexOf(f["case"]) < 0) opts2.unshift(f["case"]);
+    opts2.forEach(function (name) {
+      var o = document.createElement("option");
+      o.value = name; o.textContent = name;
+      sel.appendChild(o);
+    });
+    FIELDS.forEach(function (n) { form.elements[n].value = f[n]; });
+    CHECKS.forEach(function (n) { form.elements[n].checked = f[n]; });
+    el.caseWrap.dataset.color = caseColor(f["case"]);
+    chipRow(el.recent, "Recent", (opts.recent_cases || []).slice(0, 3), function (v) {
+      sel.value = v;
+      sel.dispatchEvent(new Event("change"));
+    });
+    syncChips(el.recent, f["case"]);
+    chipRow(el.purposes, "", opts.purpose_options || DEFAULT_PURPOSES, function (v) {
+      form.elements.purpose.value = v;
+      syncChips(el.purposes, v);
+    });
+    syncChips(el.purposes, f.purpose);
+    updateCount();
+
+    el.file.value = "";
+    setRecording(!!ctx.recording);
+    el.save.disabled = !!ctx.busy;
+    renderVoice();
+    if (ctx.busy) el.voiceTitle.textContent = ctx.recording ? "Finishing recording…" : "Uploading voice note…";
+    show(form.elements.purpose);
+  }
+
+  function closeDrawer() {
+    el.player.pause && el.player.pause();
     root.hidden = true;
     document.body.style.overflow = "";
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
+  // X / Esc / click outside: keep everything as a draft. A recording in progress is
+  // finished and uploaded into the draft.
+  function hide() {
+    if (!root || root.hidden) return;
+    var fields = {};
+    FIELDS.forEach(function (n) { fields[n] = form.elements[n].value; });
+    CHECKS.forEach(function (n) { fields[n] = form.elements[n].checked; });
+    drafts[ctx.key] = { ctx: ctx, fields: fields };
+    if (ctx.recording) emit("voice-note-record-stop", ctx.entry);
+    closeDrawer();
+  }
+
+  // Cancel (and Delete): throw the draft away, including any recording made in it.
+  function cancel() {
+    if (!root || root.hidden) return;
+    delete drafts[ctx.key];
+    ctx.cancelled = true;
+    if (ctx.recording) emit("voice-note-record-cancel", ctx.entry);
+    discardUnsaved(ctx);
+    setRecording(false);
+    closeDrawer();
+  }
+
+  // Programmatic close (OfficeHubEntryDrawer.close) behaves like Cancel.
+  function close() { cancel(); }
+
   function save() {
+    if (ctx.busy || ctx.recording) {
+      setVoiceStatus("Finish the voice note before saving.", true);
+      return;
+    }
     var bad = null;
     ["case", "date", "time", "purpose"].forEach(function (name) {
       var f = form.elements[name];
@@ -313,13 +468,19 @@
       user_name: ctx.user_name,
       created_at: e.created_at || null
     };
+    if (ctx.recordingChanged) out.recording_id = ctx.recording_id;
     emit("entry-save", out, {
       draft_email: form.elements.draft_email.checked,
-      add_to_calendar: form.elements.add_to_calendar.checked,
-      voice_file: ctx.voice_file
+      add_to_calendar: form.elements.add_to_calendar.checked
     });
-    close();
+    delete drafts[ctx.key];
+    closeDrawer();
   }
 
-  window.OfficeHubEntryDrawer = { open: open, close: close };
+  window.OfficeHubEntryDrawer = {
+    open: open, close: close,
+    setVoiceNote: setVoiceNote, setVoiceStatus: setVoiceStatus, setRecording: setRecording, setBusy: setBusy,
+    isOpen: function () { return !!root && !root.hidden; },
+    hasDraft: function (entry) { return !!drafts[draftKey(entry)]; }
+  };
 })();
